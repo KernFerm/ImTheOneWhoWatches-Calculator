@@ -2,7 +2,8 @@
 
 MathIt! is an engaging command-line calculator that supports a wide range of mathematical operations—including arithmetic, algebra, trigonometry, and other advanced calculations. All inputs and outputs are logged to an `answer.txt` file for easy reference. The interface is enhanced with emojis and colored output using [Colorama](https://pypi.org/project/colorama/), while [Sympy](https://www.sympy.org/) is used to simplify algebraic expressions.
 
-# I made it better for him he had issues 
+# I made it better for him he had issues
+[https://github.com/ImTheOneWhoWatches/Calculator](https://github.com/ImTheOneWhoWatches/Calculator)
 
 ## Features
 
