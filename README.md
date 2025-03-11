@@ -33,7 +33,7 @@ MathIt! is an engaging command-line calculator that supports a wide range of mat
 Navigate to the Project Directory:
 
 ```
-cd forkedfromImTheOneWhoWatches-Calculato
+cd forkedfromImTheOneWhoWatches-Calculator
 ```
 
 Install the Required Dependencies:
