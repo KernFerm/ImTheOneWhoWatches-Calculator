@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MathIt! - A command-line calculator that supports arithmetic, algebra, trigonometry, 
+MathIt! - A secure and enhanced command-line calculator that supports arithmetic, algebra, trigonometry, 
 and other mathematical operations. Each operation's input and output is logged to answer.txt.
 """
 
@@ -10,18 +10,25 @@ import time
 import sympy as sp
 import colorama
 from colorama import Fore, Style
+from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
 
 # Initialize colorama with auto-reset
 colorama.init(autoreset=True)
 
-# Function to clear the screen
+# Define safe transformations for parsing expressions
+SAFE_TRANSFORMATIONS = standard_transformations + (implicit_multiplication_application, convert_xor)
+
+# Function to clear the screen using a fixed command
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-# Function to log results to answer.txt
+# Function to log results to answer.txt safely
 def log_result(problem: str, result: str):
-    with open("answer.txt", "a") as file:
-        file.write(f"{problem} = {result}\n")
+    try:
+        with open("answer.txt", "a") as file:
+            file.write(f"{problem} = {result}\n")
+    except Exception as e:
+        print_error(f"Logging failed: {e}")
 
 # Help information functions
 def print_arithmetic_help():
@@ -35,25 +42,25 @@ def print_arithmetic_help():
 
 def print_algebra_help():
     print("Algebraic Operations 📐:")
-    print("1. Solve Linear Equation (ax + b = c) ➗: Solves linear equations.")
-    print("2. Solve Quadratic Equation (ax^2 + bx + c = 0) 📊: Solves quadratic equations.")
-    print("3. Solve Cubic Equation (ax^3 + bx^2 + cx + d = 0) 📈: Solves cubic equations.")
-    print("4. Solve Exponential Equation (a^x = b) 🔥: Solves exponential equations.")
-    print("5. Solve Logarithmic Equation (log_a(x) = b) 🔍: Solves logarithmic equations.")
-    print("6. Y = MX + B ➡️: Calculates y for a given linear equation.")
-    print("7. Simplify Algebraic Expression 🧩: Simplifies algebraic expressions.")
+    print("1. Solve Linear Equation (ax + b = c): Solves linear equations.")
+    print("2. Solve Quadratic Equation (ax^2 + bx + c = 0): Solves quadratic equations.")
+    print("3. Solve Cubic Equation (ax^3 + bx^2 + cx + d = 0): Solves cubic equations.")
+    print("4. Solve Exponential Equation (a^x = b): Solves exponential equations.")
+    print("5. Solve Logarithmic Equation (log_a(x) = b): Solves logarithmic equations.")
+    print("6. Y = MX + B: Calculates y for a given linear equation.")
+    print("7. Simplify Algebraic Expression: Safely simplifies algebraic expressions.")
 
 def print_trigonometry_help():
     print("Trigonometry Operations 📏:")
-    print("1. Sine (sin) 🌟: Calculates the sine of an angle.")
-    print("2. Cosine (cos) 🌟: Calculates the cosine of an angle.")
-    print("3. Tangent (tan) 🌟: Calculates the tangent of an angle.")
-    print("4. Inverse Sine (arcsin or asin) 🔄: Returns arcsine (in degrees) of a value in [-1,1].")
-    print("5. Inverse Cosine (arccos or acos) 🔄: Returns arccosine (in degrees) of a value in [-1,1].")
-    print("6. Inverse Tangent (arctan or atan) 🔄: Returns arctangent (in degrees) of a value.")
-    print("7. Cosecant (csc) ❗: Calculates the cosecant of an angle.")
-    print("8. Secant (sec) ❗: Calculates the secant of an angle.")
-    print("9. Cotangent (cot) ❗: Calculates the cotangent of an angle.")
+    print("1. Sine (sin): Calculates the sine of an angle.")
+    print("2. Cosine (cos): Calculates the cosine of an angle.")
+    print("3. Tangent (tan): Calculates the tangent of an angle.")
+    print("4. Inverse Sine (arcsin or asin): Returns arcsine (in degrees) of a value in [-1,1].")
+    print("5. Inverse Cosine (arccos or acos): Returns arccosine (in degrees) of a value in [-1,1].")
+    print("6. Inverse Tangent (arctan or atan): Returns arctangent (in degrees) of a value.")
+    print("7. Cosecant (csc): Calculates the cosecant of an angle.")
+    print("8. Secant (sec): Calculates the secant of an angle.")
+    print("9. Cotangent (cot): Calculates the cotangent of an angle.")
 
 def print_mathematical_help():
     print("Mathematical Operations 🧮:")
@@ -81,6 +88,14 @@ def input_number(prompt):
 
 def print_error(message):
     print(Fore.RED + f"❌ Error: {message}" + Style.RESET_ALL)
+
+# Safely simplify algebraic expressions using a restricted parser
+def safe_simplify(expression: str):
+    try:
+        expr = parse_expr(expression, transformations=SAFE_TRANSFORMATIONS, evaluate=False)
+        return sp.simplify(expr)
+    except Exception as e:
+        raise ValueError(f"Failed to simplify expression: {e}")
 
 # Arithmetic operations
 def arithmetic_operations():
@@ -129,9 +144,12 @@ def arithmetic_operations():
         elif operation == "5":
             num1 = input_number("Enter first number: ")
             num2 = input_number("Enter second number: ")
-            result = num1 % num2
-            print(f"🔢 {num1} % {num2} = {result} ✅")
-            log_result(f"{num1} % {num2}", result)
+            if num2 != 0:
+                result = num1 % num2
+                print(f"🔢 {num1} % {num2} = {result} ✅")
+                log_result(f"{num1} % {num2}", result)
+            else:
+                print_error("Cannot perform modulus with divisor zero")
         elif operation == "6":
             num1 = input_number("Enter numerator: ")
             num2 = input_number("Enter denominator: ")
@@ -164,10 +182,10 @@ def algebra_operations():
         print("4. Solve Exponential Equation (a^x = b)")
         print("5. Solve Logarithmic Equation (log_a(x) = b)")
         print("6. Y = MX + B")
-        print("7. Simplify Algebraic Expression 🧩")
-        print("8. Clear Screen 🧹")
+        print("7. Simplify Algebraic Expression")
+        print("8. Clear Screen")
         print("9. Help ℹ️")
-        print("10. Back to main menu ⬅️")
+        print("10. Back to main menu")
 
         operation = input("Enter your choice: ")
 
@@ -264,9 +282,12 @@ def algebra_operations():
             log_result(f"Solve: y = {m}x + {b_val} for x = {x_val}", y)
         elif operation == "7":
             expression = input("Enter the algebraic expression: ")
-            simplified_expression = sp.simplify(expression)
-            print(f"🧩 Simplified: {simplified_expression} ✅")
-            log_result(f"Simplify: {expression}", simplified_expression)
+            try:
+                simplified_expression = safe_simplify(expression)
+                print(f"🧩 Simplified: {simplified_expression} ✅")
+                log_result(f"Simplify: {expression}", simplified_expression)
+            except ValueError as e:
+                print_error(str(e))
         elif operation == "8":
             clear_screen()
             print_banner()
@@ -284,17 +305,17 @@ def trigonometry_operations():
     while True:
         print_separator()
         print("Trigonometry Operations 📏:")
-        print("1. Sine (sin) 🌟")
-        print("2. Cosine (cos) 🌟")
-        print("3. Tangent (tan) 🌟")
-        print("4. Inverse Sine (arcsin or asin) 🔄")
-        print("5. Inverse Cosine (arccos or acos) 🔄")
-        print("6. Inverse Tangent (arctan or atan) 🔄")
-        print("7. Cosecant (csc) ❗")
-        print("8. Secant (sec) ❗")
-        print("9. Cotangent (cot) ❗")
+        print("1. Sine (sin)")
+        print("2. Cosine (cos)")
+        print("3. Tangent (tan)")
+        print("4. Inverse Sine (arcsin or asin)")
+        print("5. Inverse Cosine (arccos or acos)")
+        print("6. Inverse Tangent (arctan or atan)")
+        print("7. Cosecant (csc)")
+        print("8. Secant (sec)")
+        print("9. Cotangent (cot)")
         print("10. Help ℹ️")
-        print("11. Back to main menu ⬅️")
+        print("11. Back to main menu")
 
         operation = input("Enter your choice: ")
 
@@ -374,7 +395,7 @@ def mathematical_operations():
         print("1. Square Root √")
         print("2. Power ^")
         print("3. Help ℹ️")
-        print("4. Back to main menu ⬅️")
+        print("4. Back to main menu")
 
         operation = input("Enter your choice: ")
 
@@ -402,35 +423,38 @@ def mathematical_operations():
         time.sleep(2)
 
 def main():
-    while True:
-        clear_screen()
-        print_banner()
-        print("Welcome to MathIt! 🎉, by TheOneWhoWatches")
-        print_separator()
-        print("Select an operation: 🔢")
-        print("1. Arithmetic Operations 🧮")
-        print("2. Algebraic Operations 📐")
-        print("3. Trigonometry Operations 📏")
-        print("4. Mathematical Operations 🧮")
-        print("5. Quit 🚪")
+    try:
+        while True:
+            clear_screen()
+            print_banner()
+            print("Welcome to MathIt! 🎉, by TheOneWhoWatches")
+            print_separator()
+            print("Select an operation:")
+            print("1. Arithmetic Operations")
+            print("2. Algebraic Operations")
+            print("3. Trigonometry Operations")
+            print("4. Mathematical Operations")
+            print("5. Quit")
 
-        choice = input("Enter your choice: ")
+            choice = input("Enter your choice: ")
 
-        if choice == "1":
-            arithmetic_operations()
-        elif choice == "2":
-            algebra_operations()
-        elif choice == "3":
-            trigonometry_operations()
-        elif choice == "4":
-            mathematical_operations()
-        elif choice == "5":
-            print("Thank you for using MathIt! 😊 Goodbye! 🚪")
+            if choice == "1":
+                arithmetic_operations()
+            elif choice == "2":
+                algebra_operations()
+            elif choice == "3":
+                trigonometry_operations()
+            elif choice == "4":
+                mathematical_operations()
+            elif choice == "5":
+                print("Thank you for using MathIt! 😊 Goodbye!")
+                time.sleep(2)
+                break
+            else:
+                print_error("Invalid Entry")
             time.sleep(2)
-            break
-        else:
-            print_error("Invalid Entry")
-        time.sleep(2)
+    except KeyboardInterrupt:
+        print("\nProgram terminated by user.")
 
 if __name__ == "__main__":
     main()
